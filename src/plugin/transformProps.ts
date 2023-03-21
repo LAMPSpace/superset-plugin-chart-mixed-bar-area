@@ -49,7 +49,29 @@ export default function transformProps(chartProps: ChartProps) {
    * be seen until restarting the development server.
    */
   const { width, height, formData, queriesData } = chartProps;
-  const { boldText, headerFontSize, headerText } = formData;
+  const {
+    boldText,
+    headerFontSize,
+    headerText,
+    headerPosition,
+    textAlign,
+    legend,
+    legendPosition,
+    yLabel,
+    xLabel,
+    yAxis,
+    xAxis,
+    yAxisAngle,
+    xAxisAngle,
+    areaFields,
+    areaLabel,
+    barLabel,
+    areaLabelPosition,
+    barLabelPosition,
+    areaLabelAngle,
+    barLabelAngle,
+    customFieldNames,
+  } = formData;
   const data = queriesData[0].data as TimeseriesDataRecord[];
 
   console.log('formData via TransformProps.ts', formData);
@@ -62,5 +84,23 @@ export default function transformProps(chartProps: ChartProps) {
     boldText,
     headerFontSize,
     headerText,
+    headerPosition,
+    textAlign,
+    legend,
+    legendPosition,
+    yLabel,
+    xLabel,
+    yAxis,
+    xAxis,
+    yAxisAngle,
+    xAxisAngle,
+    areaFields,
+    areaLabel,
+    barLabel,
+    areaLabelPosition,
+    barLabelPosition,
+    areaLabelAngle,
+    barLabelAngle,
+    customFieldNames,
   };
 }

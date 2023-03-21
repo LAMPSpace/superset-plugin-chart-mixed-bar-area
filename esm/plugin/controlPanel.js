@@ -116,13 +116,13 @@ var config = {
       config: sharedControls.row_limit
     }]]
   }, {
-    label: t('Hello Controls!'),
+    label: t('Header Controls'),
     expanded: true,
     controlSetRows: [[{
       name: 'header_text',
       config: {
         type: 'TextControl',
-        default: 'Hello, World!',
+        default: '',
         renderTrigger: true,
         // ^ this makes it apply instantaneously, without triggering a "run query" button
         label: t('Header Text'),
@@ -135,18 +135,207 @@ var config = {
         label: t('Bold Text'),
         renderTrigger: true,
         default: true,
-        description: t('A checkbox to make the ')
+        description: t('A checkbox to make the bold header')
+      }
+    }], [{
+      name: 'text_align',
+      config: {
+        type: 'SelectControl',
+        label: t('Text Align'),
+        default: 'left',
+        choices: [// [value, label]
+        ['left', 'Left'], ['center', 'Center'], ['right', 'Right']],
+        renderTrigger: true,
+        description: t('The size of your header font')
       }
     }], [{
       name: 'header_font_size',
       config: {
         type: 'SelectControl',
         label: t('Font Size'),
-        default: 'xl',
+        default: 'm',
         choices: [// [value, label]
         ['xxs', 'xx-small'], ['xs', 'x-small'], ['s', 'small'], ['m', 'medium'], ['l', 'large'], ['xl', 'x-large'], ['xxl', 'xx-large']],
         renderTrigger: true,
         description: t('The size of your header font')
+      }
+    }]]
+  }, {
+    label: t('Y Axis Controls'),
+    expanded: true,
+    controlSetRows: [[{
+      name: 'y_label',
+      config: {
+        type: 'TextControl',
+        default: '',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Y Label'),
+        description: t('The y-label of chart')
+      }
+    }], [{
+      name: 'y_axis_angle',
+      config: {
+        type: 'TextControl',
+        default: '0',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Y Axis Angle'),
+        description: t('The y-axis angle of chart')
+      }
+    }], [{
+      name: 'y_axis',
+      config: {
+        type: 'CheckboxControl',
+        label: t('Y Axis'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the y-axis')
+      }
+    }]]
+  }, {
+    label: t('X Axis Controls'),
+    expanded: true,
+    controlSetRows: [[{
+      name: 'x_label',
+      config: {
+        type: 'TextControl',
+        default: '',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('X Label'),
+        description: t('The x-label of chart')
+      }
+    }], [{
+      name: 'x_axis_angle',
+      config: {
+        type: 'TextControl',
+        default: '0',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('X Axis Angle'),
+        description: t('The x-axis angle of chart')
+      }
+    }], [{
+      name: 'x_axis',
+      config: {
+        type: 'CheckboxControl',
+        label: t('X Axis'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the x-axis')
+      }
+    }]]
+  }, {
+    label: t('Chart Custom Controls'),
+    expanded: true,
+    controlSetRows: [[{
+      name: 'custom_field_names',
+      config: {
+        type: 'TextControl',
+        default: '',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Custom Field Names'),
+        description: t('The custom field names you want to show in your chart, each element should be splited by ;')
+      }
+    }], [{
+      name: 'legend',
+      config: {
+        type: 'CheckboxControl',
+        label: t('Legend'),
+        renderTrigger: true,
+        default: true,
+        description: t('A checkbox to make the legend')
+      }
+    }], [{
+      name: 'legend_position',
+      config: {
+        type: 'SelectControl',
+        label: t('Legend Position'),
+        default: 'top',
+        choices: [// [value, label]
+        ['top', 'Top'], ['bottom', 'Bottom']],
+        renderTrigger: true,
+        description: t('The position of legend')
+      }
+    }]]
+  }, {
+    label: t('Area Chart Controls'),
+    expanded: true,
+    controlSetRows: [[{
+      name: 'area_fields',
+      config: {
+        type: 'TextControl',
+        default: '',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Area Fields'),
+        description: t('The fields that you want to show using area chart, each element should be splited by ;')
+      }
+    }], [{
+      name: 'area_label',
+      config: {
+        type: 'CheckboxControl',
+        label: t('Area Chart Label'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the area chart labels')
+      }
+    }], [{
+      name: 'area_label_position',
+      config: {
+        type: 'SelectControl',
+        label: t('Area Chart Label Position'),
+        default: 'top',
+        choices: [// [value, label]
+        ['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']],
+        renderTrigger: true,
+        description: t('The position of area chart labels')
+      }
+    }], [{
+      name: 'area_label_angle',
+      config: {
+        type: 'TextControl',
+        default: '0',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Area Label Angle'),
+        description: t('The angle of area chart labels')
+      }
+    }]]
+  }, {
+    label: t('Bar Chart Controls'),
+    expanded: true,
+    controlSetRows: [[{
+      name: 'bar_label',
+      config: {
+        type: 'CheckboxControl',
+        label: t('Bar Chart Label'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the bar chart labels')
+      }
+    }], [{
+      name: 'bar_label_position',
+      config: {
+        type: 'SelectControl',
+        label: t('Bar Chart Label Position'),
+        default: 'top',
+        choices: [// [value, label]
+        ['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right'], ['center', 'Center'], ['insideTop', 'Inside Top'], ['insideBottom', 'Inside Bottom'], ['insideLeft', 'Inside Left'], ['insideRight', 'Inside Right']],
+        renderTrigger: true,
+        description: t('The position of bar chart labels')
+      }
+    }], [{
+      name: 'bar_label_angle',
+      config: {
+        type: 'TextControl',
+        default: '0',
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Bar Label Angle'),
+        description: t('The angle of bar chart labels')
       }
     }]]
   }]

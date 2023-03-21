@@ -19,6 +19,17 @@
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
 import { SupersetPluginChartMixedBarAreaProps, SupersetPluginChartMixedBarAreaStylesProps } from './types';
+import {
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Area,
+  ComposedChart,
+  LabelList,
+} from "recharts";
 
 // The following Styles component is a <div> element, which has been styled using Emotion
 // For docs, visit https://emotion.sh/docs/styled
@@ -28,24 +39,16 @@ import { SupersetPluginChartMixedBarAreaProps, SupersetPluginChartMixedBarAreaSt
 // https://github.com/apache-superset/superset-ui/blob/master/packages/superset-ui-core/src/style/index.ts
 
 const Styles = styled.div<SupersetPluginChartMixedBarAreaStylesProps>`
-  background-color: ${({ theme }) => theme.colors.secondary.light2};
-  padding: ${({ theme }) => theme.gridUnit * 4}px;
+  padding: ${({ theme }) => theme.gridUnit * 0}px;
   border-radius: ${({ theme }) => theme.gridUnit * 2}px;
   height: ${({ height }) => height}px;
   width: ${({ width }) => width}px;
-
-  h3 {
+  h4 {
     /* You can use your props to control CSS! */
     margin-top: 0;
-    margin-bottom: ${({ theme }) => theme.gridUnit * 3}px;
+    margin-bottom: ${({ theme }) => theme.gridUnit * 1}px;
     font-size: ${({ theme, headerFontSize }) => theme.typography.sizes[headerFontSize]}px;
     font-weight: ${({ theme, boldText }) => theme.typography.weights[boldText ? 'bold' : 'normal']};
-  }
-
-  pre {
-    height: ${({ theme, headerFontSize, height }) => (
-      height - theme.gridUnit * 12 - theme.typography.sizes[headerFontSize]
-    )}px;
   }
 `;
 
@@ -73,6 +76,136 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
 
   console.log('Plugin props', props);
 
+  const keys = Object.keys(data[0]);
+
+  const numberOfTicks = 5;
+
+  const groupFields = keys.filter(key => typeof (data[0][key]) === 'string');
+
+  const numberFields = keys.slice(groupFields.length);
+
+  const itemLabel = groupFields[groupFields.length - 1];
+
+  const customFieldNames = props.customFieldNames !== undefined ? props.customFieldNames.split(';').map(field => {
+    return field.trim();
+  }) : [];
+
+  const areaFields = props.areaFields !== undefined ? props.areaFields.split(';').map(field => {
+    return field.trim();
+  }) : [];
+
+  const barFields = numberFields.filter(key => !areaFields.includes(key));
+
+  const colors = [
+    '#CCFF33',
+    '#8abcdc',
+    '#405ba3',
+    '#003366',
+    '#336699',
+    '#CC3300',
+    '#FF9900',
+    '#00CCFF',
+    '#CC9966'
+  ];
+
+  const numberFormatter = (num: any) => {
+    const lookup = [
+      { value: 1e3, symbol: "k" },
+      { value: 1e6, symbol: "M" },
+      { value: 1e9, symbol: "G" },
+      { value: 1e12, symbol: "T" },
+      { value: 1e15, symbol: "P" },
+      { value: 1e18, symbol: "E" }
+    ];
+    let result = num.toFixed(2);
+    lookup.forEach((item, index) => {
+      if (index !== 0) {
+        let preLookup = lookup[index - 1];
+        if (item.value >= num && num > preLookup.value) {
+          let mod = Math.round((num % preLookup.value)) === 0 ? '' : Math.round((num % preLookup.value));
+          result = Math.floor(num / preLookup.value) + preLookup.symbol + mod;
+        }
+      }
+    })
+    return result;
+  }
+
+  const roundUpToNearestDecimal = (number: number, exponent: number) => {
+    let nearestDecimal: number = Math.pow(10, exponent);
+    let newNumber = Math.abs(number) % nearestDecimal === 0 ? Math.abs(number) : Math.round(Math.abs(number) / nearestDecimal) * nearestDecimal + nearestDecimal;;
+    return number < 0 ? -1 * newNumber : newNumber;
+  }
+
+  const getMaxMinValueByKey = (key: string) => {
+    let maxValue: any = 0;
+    let minValue: any = 0;
+    data.forEach(item => {
+      let values: any = Object.keys(item).map((itemKey) => {
+        if (typeof item[itemKey] == 'number' && key === itemKey) {
+          return item[itemKey];
+        } else {
+          return 0;
+        }
+      });
+      maxValue = maxValue > Math.max(...values) ? maxValue : Math.max(...values);
+      minValue = minValue < Math.min(...values) ? minValue : Math.min(...values);
+    });
+    return [roundUpToNearestDecimal(minValue, Math.round(Math.abs(minValue)).toString().length - 1), roundUpToNearestDecimal(maxValue, Math.round(Math.abs(maxValue)).toString().length - 1)];
+  }
+
+  const roundIndex = (number: number) => {
+    const lookup = [
+      { percent: 0, value: 0 },
+      { percent: 0.25, value: 1 },
+      { percent: 0.5, value: 2 },
+      { percent: 0.75, value: 3 },
+      { percent: 1, value: 4 },
+    ]
+    let newIndex = 0;
+    lookup.slice(1).forEach((item, index) => {
+      if (item.percent >= number && number > lookup[index].percent) {
+        newIndex = Math.abs(item.percent - number) > Math.abs(lookup[index].percent - number) ? lookup[index].value : item.value;
+      }
+    });
+    return newIndex;
+  }
+
+  const getNewZeroIndex = (fieldRanges: any) => {
+    let index = 0;
+    fieldRanges.forEach(range => {
+      index += range.indexOf(0) / (range.length - 1);
+    });
+    return roundIndex(index / fieldRanges.length);
+  }
+
+  const generateTicks = (fieldRanges: any, zeroIndex: number) => {
+    let fieldTicks: any = [];
+    fieldRanges.forEach(value => {
+      let minRange = zeroIndex === 0 ? Math.abs(Math.min(...value)) : Math.abs(Math.min(...value)) / zeroIndex;
+      let maxRange = numberOfTicks - 1 - zeroIndex === 0 ? Math.abs(Math.max(...value)) : Math.abs(Math.max(...value)) / (4 - zeroIndex);
+      let range = Math.max(...[minRange, maxRange]);
+      let ticks = [0, 0, 0, 0, 0].map((tick, index) => {
+        return range * (index - zeroIndex);
+      });
+      fieldTicks.push(ticks);
+    });
+    return fieldTicks;
+  }
+
+  const generateFieldTicks = () => {
+    let fieldRanges: any = [];
+    areaFields.forEach(field => {
+      let range = getMaxMinValueByKey(field);
+      if (!range.includes(0)) {
+        range.push(0);
+      }
+      fieldRanges.push(range.sort(function (a, b) { return a - b }));
+    });
+    return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
+  }
+
+  const areaTicks = generateFieldTicks();
+
   return (
     <Styles
       ref={rootElem}
@@ -81,8 +214,91 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
       height={height}
       width={width}
     >
-      <h3>{props.headerText}</h3>
-      <pre>${JSON.stringify(data, null, 2)}</pre>
+      <h4 style={{ textAlign: props.textAlign !== undefined ? props.textAlign : 'left' }}>{props.headerText}</h4>
+      <ComposedChart
+        width={width}
+        height={height}
+        data={data}
+      >
+        <CartesianGrid stroke="#f5f5f5" />
+        <XAxis
+          label={{ value: props.xLabel, angle: 0, position: 'insideBottom' }}
+          dataKey={itemLabel}
+          type='category'
+          angle={props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0}
+          hide={!props.xAxis}
+          scale='band'
+        ></XAxis>
+        {numberFields.map((key, index) => {
+          let ticks: any = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
+          console.log(ticks);
+          return areaFields.includes(key) ? (
+            <YAxis
+              yAxisId={index}
+              label={{ value: props.yLabel, angle: -90, position: 'insideLeft' }}
+              dataKey={key}
+              type='number'
+              hide={!props.yAxis}
+              ticks={ticks}
+              angle={props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0}
+              tickFormatter={numberFormatter}>
+            </YAxis>) :
+            (
+              <YAxis
+                yAxisId={index}
+                label={{ value: props.yLabel, angle: -90, position: 'insideLeft' }}
+                dataKey={key}
+                type='number'
+                hide={!props.yAxis}
+                angle={props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0}
+                tickFormatter={numberFormatter}>
+              </YAxis>);
+        })}
+        <Tooltip />
+        {(props.legend !== undefined && props.legend) && <Legend verticalAlign={props.legendPosition !== undefined ? props.legendPosition : 'top'} />}
+        {barFields.length > 0 && barFields.map(key => {
+          let index = numberFields.indexOf(key);
+          let fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
+          return (
+            <Bar
+              yAxisId={index}
+              dataKey={key}
+              name={fieldName}
+              fill={colors[index]}
+            >
+              {(props.barLabel !== undefined && props.barLabel) &&
+                <LabelList
+                  dataKey={key}
+                  position={props.barLabelPosition !== undefined ? props.barLabelPosition : 'right'}
+                  angle={props.barLabelAngle !== undefined ? parseInt(props.barLabelAngle) : 0}
+                  formatter={numberFormatter}
+                ></LabelList>}
+            </Bar>
+          );
+        })}
+        {areaFields.length > 0 && areaFields.map(key => {
+          let index = numberFields.indexOf(key);
+          let fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
+          return (
+            <Area type="monotone"
+              yAxisId={index}
+              dataKey={key}
+              name={fieldName}
+              stroke={colors[index]}
+              fill={colors[index]}
+              dot={{ fill: 'white', stroke: colors[index], strokeWidth: 2 }}
+            >
+              {(props.areaLabel !== undefined && props.areaLabel) &&
+                <LabelList
+                  dataKey={key}
+                  position={props.areaLabelPosition !== undefined ? props.areaLabelPosition : 'right'}
+                  angle={props.areaLabelAngle !== undefined ? parseInt(props.areaLabelAngle) : 0}
+                  formatter={numberFormatter}
+                ></LabelList>}
+            </Area>
+          )
+        })}
+      </ComposedChart>
     </Styles>
   );
 }

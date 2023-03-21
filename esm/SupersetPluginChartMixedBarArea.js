@@ -22,60 +22,49 @@ function _taggedTemplateLiteralLoose(strings, raw) { if (!raw) { raw = strings.s
  */
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
-// The following Styles component is a <div> element, which has been styled using Emotion
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, ComposedChart, LabelList } from "recharts"; // The following Styles component is a <div> element, which has been styled using Emotion
 // For docs, visit https://emotion.sh/docs/styled
 // Theming variables are provided for your use via a ThemeProvider
 // imported from @superset-ui/core. For variables available, please visit
 // https://github.com/apache-superset/superset-ui/blob/master/packages/superset-ui-core/src/style/index.ts
-var Styles = styled.div(_templateObject || (_templateObject = _taggedTemplateLiteralLoose(["\n  background-color: ", ";\n  padding: ", "px;\n  border-radius: ", "px;\n  height: ", "px;\n  width: ", "px;\n\n  h3 {\n    /* You can use your props to control CSS! */\n    margin-top: 0;\n    margin-bottom: ", "px;\n    font-size: ", "px;\n    font-weight: ", ";\n  }\n\n  pre {\n    height: ", "px;\n  }\n"])), _ref => {
+
+var Styles = styled.div(_templateObject || (_templateObject = _taggedTemplateLiteralLoose(["\n  padding: ", "px;\n  border-radius: ", "px;\n  height: ", "px;\n  width: ", "px;\n  h4 {\n    /* You can use your props to control CSS! */\n    margin-top: 0;\n    margin-bottom: ", "px;\n    font-size: ", "px;\n    font-weight: ", ";\n  }\n"])), _ref => {
   var {
     theme
   } = _ref;
-  return theme.colors.secondary.light2;
+  return theme.gridUnit * 0;
 }, _ref2 => {
   var {
     theme
   } = _ref2;
-  return theme.gridUnit * 4;
+  return theme.gridUnit * 2;
 }, _ref3 => {
   var {
-    theme
+    height
   } = _ref3;
-  return theme.gridUnit * 2;
+  return height;
 }, _ref4 => {
   var {
-    height
+    width
   } = _ref4;
-  return height;
+  return width;
 }, _ref5 => {
   var {
-    width
-  } = _ref5;
-  return width;
-}, _ref6 => {
-  var {
     theme
-  } = _ref6;
-  return theme.gridUnit * 3;
-}, _ref7 => {
+  } = _ref5;
+  return theme.gridUnit * 1;
+}, _ref6 => {
   var {
     theme,
     headerFontSize
-  } = _ref7;
+  } = _ref6;
   return theme.typography.sizes[headerFontSize];
-}, _ref8 => {
+}, _ref7 => {
   var {
     theme,
     boldText
-  } = _ref8;
+  } = _ref7;
   return theme.typography.weights[boldText ? 'bold' : 'normal'];
-}, _ref9 => {
-  var {
-    theme,
-    headerFontSize,
-    height
-  } = _ref9;
-  return height - theme.gridUnit * 12 - theme.typography.sizes[headerFontSize];
 });
 /**
  * ******************* WHAT YOU CAN BUILD HERE *******************
@@ -101,11 +90,235 @@ export default function SupersetPluginChartMixedBarArea(props) {
     console.log('Plugin element', root);
   });
   console.log('Plugin props', props);
+  var keys = Object.keys(data[0]);
+  var numberOfTicks = 5;
+  var groupFields = keys.filter(key => typeof data[0][key] === 'string');
+  var numberFields = keys.slice(groupFields.length);
+  var itemLabel = groupFields[groupFields.length - 1];
+  var customFieldNames = props.customFieldNames !== undefined ? props.customFieldNames.split(';').map(field => {
+    return field.trim();
+  }) : [];
+  var areaFields = props.areaFields !== undefined ? props.areaFields.split(';').map(field => {
+    return field.trim();
+  }) : [];
+  var barFields = numberFields.filter(key => !areaFields.includes(key));
+  var colors = ['#CCFF33', '#8abcdc', '#405ba3', '#003366', '#336699', '#CC3300', '#FF9900', '#00CCFF', '#CC9966'];
+
+  var numberFormatter = num => {
+    var lookup = [{
+      value: 1e3,
+      symbol: "k"
+    }, {
+      value: 1e6,
+      symbol: "M"
+    }, {
+      value: 1e9,
+      symbol: "G"
+    }, {
+      value: 1e12,
+      symbol: "T"
+    }, {
+      value: 1e15,
+      symbol: "P"
+    }, {
+      value: 1e18,
+      symbol: "E"
+    }];
+    var result = num.toFixed(2);
+    lookup.forEach((item, index) => {
+      if (index !== 0) {
+        var preLookup = lookup[index - 1];
+
+        if (item.value >= num && num > preLookup.value) {
+          var mod = Math.round(num % preLookup.value) === 0 ? '' : Math.round(num % preLookup.value);
+          result = Math.floor(num / preLookup.value) + preLookup.symbol + mod;
+        }
+      }
+    });
+    return result;
+  };
+
+  var roundUpToNearestDecimal = (number, exponent) => {
+    var nearestDecimal = Math.pow(10, exponent);
+    var newNumber = Math.abs(number) % nearestDecimal === 0 ? Math.abs(number) : Math.round(Math.abs(number) / nearestDecimal) * nearestDecimal + nearestDecimal;
+    ;
+    return number < 0 ? -1 * newNumber : newNumber;
+  };
+
+  var getMaxMinValueByKey = key => {
+    var maxValue = 0;
+    var minValue = 0;
+    data.forEach(item => {
+      var values = Object.keys(item).map(itemKey => {
+        if (typeof item[itemKey] == 'number' && key === itemKey) {
+          return item[itemKey];
+        } else {
+          return 0;
+        }
+      });
+      maxValue = maxValue > Math.max(...values) ? maxValue : Math.max(...values);
+      minValue = minValue < Math.min(...values) ? minValue : Math.min(...values);
+    });
+    return [roundUpToNearestDecimal(minValue, Math.round(Math.abs(minValue)).toString().length - 1), roundUpToNearestDecimal(maxValue, Math.round(Math.abs(maxValue)).toString().length - 1)];
+  };
+
+  var roundIndex = number => {
+    var lookup = [{
+      percent: 0,
+      value: 0
+    }, {
+      percent: 0.25,
+      value: 1
+    }, {
+      percent: 0.5,
+      value: 2
+    }, {
+      percent: 0.75,
+      value: 3
+    }, {
+      percent: 1,
+      value: 4
+    }];
+    var newIndex = 0;
+    lookup.slice(1).forEach((item, index) => {
+      if (item.percent >= number && number > lookup[index].percent) {
+        newIndex = Math.abs(item.percent - number) > Math.abs(lookup[index].percent - number) ? lookup[index].value : item.value;
+      }
+    });
+    return newIndex;
+  };
+
+  var getNewZeroIndex = fieldRanges => {
+    var index = 0;
+    fieldRanges.forEach(range => {
+      index += range.indexOf(0) / (range.length - 1);
+    });
+    return roundIndex(index / fieldRanges.length);
+  };
+
+  var generateTicks = (fieldRanges, zeroIndex) => {
+    var fieldTicks = [];
+    fieldRanges.forEach(value => {
+      var minRange = zeroIndex === 0 ? Math.abs(Math.min(...value)) : Math.abs(Math.min(...value)) / zeroIndex;
+      var maxRange = numberOfTicks - 1 - zeroIndex === 0 ? Math.abs(Math.max(...value)) : Math.abs(Math.max(...value)) / (4 - zeroIndex);
+      var range = Math.max(...[minRange, maxRange]);
+      var ticks = [0, 0, 0, 0, 0].map((tick, index) => {
+        return range * (index - zeroIndex);
+      });
+      fieldTicks.push(ticks);
+    });
+    return fieldTicks;
+  };
+
+  var generateFieldTicks = () => {
+    var fieldRanges = [];
+    areaFields.forEach(field => {
+      var range = getMaxMinValueByKey(field);
+
+      if (!range.includes(0)) {
+        range.push(0);
+      }
+
+      fieldRanges.push(range.sort(function (a, b) {
+        return a - b;
+      }));
+    });
+    return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
+  };
+
+  var areaTicks = generateFieldTicks();
   return /*#__PURE__*/React.createElement(Styles, {
     ref: rootElem,
     boldText: props.boldText,
     headerFontSize: props.headerFontSize,
     height: height,
     width: width
-  }, /*#__PURE__*/React.createElement("h3", null, props.headerText), /*#__PURE__*/React.createElement("pre", null, "$", JSON.stringify(data, null, 2)));
+  }, /*#__PURE__*/React.createElement("h4", {
+    style: {
+      textAlign: props.textAlign !== undefined ? props.textAlign : 'left'
+    }
+  }, props.headerText), /*#__PURE__*/React.createElement(ComposedChart, {
+    width: width,
+    height: height,
+    data: data
+  }, /*#__PURE__*/React.createElement(CartesianGrid, {
+    stroke: "#f5f5f5"
+  }), /*#__PURE__*/React.createElement(XAxis, {
+    label: {
+      value: props.xLabel,
+      angle: 0,
+      position: 'insideBottom'
+    },
+    dataKey: itemLabel,
+    type: "category",
+    angle: props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0,
+    hide: !props.xAxis,
+    scale: "band"
+  }), numberFields.map((key, index) => {
+    var ticks = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
+    console.log(ticks);
+    return areaFields.includes(key) ? /*#__PURE__*/React.createElement(YAxis, {
+      yAxisId: index,
+      label: {
+        value: props.yLabel,
+        angle: -90,
+        position: 'insideLeft'
+      },
+      dataKey: key,
+      type: "number",
+      hide: !props.yAxis,
+      ticks: ticks,
+      angle: props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0,
+      tickFormatter: numberFormatter
+    }) : /*#__PURE__*/React.createElement(YAxis, {
+      yAxisId: index,
+      label: {
+        value: props.yLabel,
+        angle: -90,
+        position: 'insideLeft'
+      },
+      dataKey: key,
+      type: "number",
+      hide: !props.yAxis,
+      angle: props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0,
+      tickFormatter: numberFormatter
+    });
+  }), /*#__PURE__*/React.createElement(Tooltip, null), props.legend !== undefined && props.legend && /*#__PURE__*/React.createElement(Legend, {
+    verticalAlign: props.legendPosition !== undefined ? props.legendPosition : 'top'
+  }), barFields.length > 0 && barFields.map(key => {
+    var index = numberFields.indexOf(key);
+    var fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
+    return /*#__PURE__*/React.createElement(Bar, {
+      yAxisId: index,
+      dataKey: key,
+      name: fieldName,
+      fill: colors[index]
+    }, props.barLabel !== undefined && props.barLabel && /*#__PURE__*/React.createElement(LabelList, {
+      dataKey: key,
+      position: props.barLabelPosition !== undefined ? props.barLabelPosition : 'right',
+      angle: props.barLabelAngle !== undefined ? parseInt(props.barLabelAngle) : 0,
+      formatter: numberFormatter
+    }));
+  }), areaFields.length > 0 && areaFields.map(key => {
+    var index = numberFields.indexOf(key);
+    var fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
+    return /*#__PURE__*/React.createElement(Area, {
+      type: "monotone",
+      yAxisId: index,
+      dataKey: key,
+      name: fieldName,
+      stroke: colors[index],
+      fill: colors[index],
+      dot: {
+        fill: 'white',
+        stroke: colors[index],
+        strokeWidth: 2
+      }
+    }, props.areaLabel !== undefined && props.areaLabel && /*#__PURE__*/React.createElement(LabelList, {
+      dataKey: key,
+      position: props.areaLabelPosition !== undefined ? props.areaLabelPosition : 'right',
+      angle: props.areaLabelAngle !== undefined ? parseInt(props.areaLabelAngle) : 0,
+      formatter: numberFormatter
+    }));
+  })));
 }

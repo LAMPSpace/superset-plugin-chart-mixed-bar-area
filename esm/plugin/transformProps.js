@@ -55,7 +55,25 @@ export default function transformProps(chartProps) {
   var {
     boldText,
     headerFontSize,
-    headerText
+    headerText,
+    headerPosition,
+    textAlign,
+    legend,
+    legendPosition,
+    yLabel,
+    xLabel,
+    yAxis,
+    xAxis,
+    yAxisAngle,
+    xAxisAngle,
+    areaFields,
+    areaLabel,
+    barLabel,
+    areaLabelPosition,
+    barLabelPosition,
+    areaLabelAngle,
+    barLabelAngle,
+    customFieldNames
   } = formData;
   var data = queriesData[0].data;
   console.log('formData via TransformProps.ts', formData);
@@ -66,6 +84,24 @@ export default function transformProps(chartProps) {
     // and now your control data, manipulated as needed, and passed through as props!
     boldText,
     headerFontSize,
-    headerText
+    headerText,
+    headerPosition,
+    textAlign,
+    legend,
+    legendPosition,
+    yLabel,
+    xLabel,
+    yAxis,
+    xAxis,
+    yAxisAngle,
+    xAxisAngle,
+    areaFields,
+    areaLabel,
+    barLabel,
+    areaLabelPosition,
+    barLabelPosition,
+    areaLabelAngle,
+    barLabelAngle,
+    customFieldNames
   };
 }

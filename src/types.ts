@@ -21,12 +21,30 @@ import { QueryFormData, supersetTheme, TimeseriesDataRecord } from '@superset-ui
 export interface SupersetPluginChartMixedBarAreaStylesProps {
   height: number;
   width: number;
+  textAlign: string;
   headerFontSize: keyof typeof supersetTheme.typography.sizes;
   boldText: boolean;
+  headerPosition: 'top' | 'bottom';
 }
 
 interface SupersetPluginChartMixedBarAreaCustomizeProps {
   headerText: string;
+  legend: boolean;
+  legendPosition: string;
+  yLabel: string;
+  xLabel: string;
+  yAxis: boolean;
+  xAxis: boolean;
+  yAxisAngle: string;
+  xAxisAngle: string;
+  areaFields: string;
+  areaLabel: boolean;
+  barLabel: boolean;
+  areaLabelPosition: string;
+  barLabelPosition: string;
+  areaLabelAngle: string;
+  barLabelAngle: string;
+  customFieldNames: string;
 }
 
 export type SupersetPluginChartMixedBarAreaQueryFormData = QueryFormData &
