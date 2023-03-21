@@ -1,4 +1,5 @@
 # Superset plugin chart mixed bar area
+[![Node.js Package](https://github.com/LAMPSpace/superset-plugin-chart-mixed-bar-area/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/LAMPSpace/superset-plugin-chart-mixed-bar-area/actions/workflows/npm-publish.yml)
 
 This is the Superset Plugin Chart Mixed Bar Area Superset Chart Plugin.
 
