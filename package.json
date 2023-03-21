@@ -1,6 +1,6 @@
 {
   "name": "superset-plugin-chart-mixed-bar-area",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Superset Plugin Chart Mixed Bar Area",
   "sideEffects": false,
   "main": "lib/index.js",
@@ -10,6 +10,7 @@
     "esm",
     "src",
     "test",
+    "types",
     "tsconfig.json",
     "balel.config.js",
     "jest.config.js",

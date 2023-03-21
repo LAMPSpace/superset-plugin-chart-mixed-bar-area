@@ -102,7 +102,7 @@ export default function SupersetPluginChartMixedBarArea(props) {
     return field.trim();
   }) : [];
   var barFields = numberFields.filter(key => !areaFields.includes(key));
-  var colors = ['#CCFF33', '#8abcdc', '#405ba3', '#003366', '#336699', '#CC3300', '#FF9900', '#00CCFF', '#CC9966'];
+  var colors = ['#2282c6', '#30b030', '#ff8b0f', '#8abcdc', '#405ba3', '#003366', '#336699', '#CC3300', '#FF9900', '#00CCFF', '#CC9966'];
 
   var numberFormatter = num => {
     var lookup = [{
@@ -113,7 +113,7 @@ export default function SupersetPluginChartMixedBarArea(props) {
       symbol: "M"
     }, {
       value: 1e9,
-      symbol: "G"
+      symbol: "B"
     }, {
       value: 1e12,
       symbol: "T"
@@ -129,9 +129,8 @@ export default function SupersetPluginChartMixedBarArea(props) {
       if (index !== 0) {
         var preLookup = lookup[index - 1];
 
-        if (item.value >= num && num > preLookup.value) {
-          var mod = Math.round(num % preLookup.value) === 0 ? '' : Math.round(num % preLookup.value);
-          result = Math.floor(num / preLookup.value) + preLookup.symbol + mod;
+        if (item.value >= Math.abs(num) && Math.abs(num) > preLookup.value) {
+          result = (num / preLookup.value).toFixed(2) + preLookup.symbol;
         }
       }
     });
@@ -210,7 +209,7 @@ export default function SupersetPluginChartMixedBarArea(props) {
     return fieldTicks;
   };
 
-  var generateFieldTicks = () => {
+  var getFieldTicks = () => {
     var fieldRanges = [];
     areaFields.forEach(field => {
       var range = getMaxMinValueByKey(field);
@@ -226,7 +225,7 @@ export default function SupersetPluginChartMixedBarArea(props) {
     return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
   };
 
-  var areaTicks = generateFieldTicks();
+  var areaTicks = getFieldTicks();
   return /*#__PURE__*/React.createElement(Styles, {
     ref: rootElem,
     boldText: props.boldText,
@@ -256,7 +255,6 @@ export default function SupersetPluginChartMixedBarArea(props) {
     scale: "band"
   }), numberFields.map((key, index) => {
     var ticks = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
-    console.log(ticks);
     return areaFields.includes(key) ? /*#__PURE__*/React.createElement(YAxis, {
       yAxisId: index,
       label: {
@@ -297,7 +295,12 @@ export default function SupersetPluginChartMixedBarArea(props) {
       dataKey: key,
       position: props.barLabelPosition !== undefined ? props.barLabelPosition : 'right',
       angle: props.barLabelAngle !== undefined ? parseInt(props.barLabelAngle) : 0,
-      formatter: numberFormatter
+      formatter: numberFormatter,
+      style: {
+        color: 'black',
+        fontSize: 10,
+        textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white'
+      }
     }));
   }), areaFields.length > 0 && areaFields.map(key => {
     var index = numberFields.indexOf(key);
@@ -318,7 +321,12 @@ export default function SupersetPluginChartMixedBarArea(props) {
       dataKey: key,
       position: props.areaLabelPosition !== undefined ? props.areaLabelPosition : 'right',
       angle: props.areaLabelAngle !== undefined ? parseInt(props.areaLabelAngle) : 0,
-      formatter: numberFormatter
+      formatter: numberFormatter,
+      style: {
+        color: 'black',
+        fontSize: 10,
+        textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white'
+      }
     }));
   })));
 }

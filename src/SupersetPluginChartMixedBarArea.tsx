@@ -97,7 +97,9 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
   const barFields = numberFields.filter(key => !areaFields.includes(key));
 
   const colors = [
-    '#CCFF33',
+    '#2282c6',
+    '#30b030',
+    '#ff8b0f',
     '#8abcdc',
     '#405ba3',
     '#003366',
@@ -112,7 +114,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     const lookup = [
       { value: 1e3, symbol: "k" },
       { value: 1e6, symbol: "M" },
-      { value: 1e9, symbol: "G" },
+      { value: 1e9, symbol: "B" },
       { value: 1e12, symbol: "T" },
       { value: 1e15, symbol: "P" },
       { value: 1e18, symbol: "E" }
@@ -121,9 +123,8 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     lookup.forEach((item, index) => {
       if (index !== 0) {
         let preLookup = lookup[index - 1];
-        if (item.value >= num && num > preLookup.value) {
-          let mod = Math.round((num % preLookup.value)) === 0 ? '' : Math.round((num % preLookup.value));
-          result = Math.floor(num / preLookup.value) + preLookup.symbol + mod;
+        if (item.value >= Math.abs(num) && Math.abs(num) > preLookup.value) {
+          result = (num / preLookup.value).toFixed(2) + preLookup.symbol;
         }
       }
     })
@@ -192,7 +193,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     return fieldTicks;
   }
 
-  const generateFieldTicks = () => {
+  const getFieldTicks = () => {
     let fieldRanges: any = [];
     areaFields.forEach(field => {
       let range = getMaxMinValueByKey(field);
@@ -204,7 +205,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
   }
 
-  const areaTicks = generateFieldTicks();
+  const areaTicks = getFieldTicks();
 
   return (
     <Styles
@@ -231,7 +232,6 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
         ></XAxis>
         {numberFields.map((key, index) => {
           let ticks: any = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
-          console.log(ticks);
           return areaFields.includes(key) ? (
             <YAxis
               yAxisId={index}
@@ -272,6 +272,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
                   position={props.barLabelPosition !== undefined ? props.barLabelPosition : 'right'}
                   angle={props.barLabelAngle !== undefined ? parseInt(props.barLabelAngle) : 0}
                   formatter={numberFormatter}
+                  style={{ color: 'black', fontSize: 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
                 ></LabelList>}
             </Bar>
           );
@@ -294,6 +295,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
                   position={props.areaLabelPosition !== undefined ? props.areaLabelPosition : 'right'}
                   angle={props.areaLabelAngle !== undefined ? parseInt(props.areaLabelAngle) : 0}
                   formatter={numberFormatter}
+                  style={{ color: 'black', fontSize: 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
                 ></LabelList>}
             </Area>
           )
