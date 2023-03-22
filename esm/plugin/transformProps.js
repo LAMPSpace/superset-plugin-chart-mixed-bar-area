@@ -68,6 +68,10 @@ export default function transformProps(chartProps) {
     xAxisAngle,
     numberXAxis,
     xAxisHeight,
+    xAxisTickSize,
+    xTick,
+    areaYOrientation,
+    barYOrientation,
     areaFields,
     areaLabel,
     barLabel,
@@ -78,7 +82,7 @@ export default function transformProps(chartProps) {
     areaLabelFontSize,
     barLabelFontSize,
     customFieldNames,
-    customLinearColorScheme
+    colorScheme
   } = formData;
   var data = queriesData[0].data;
   console.log('formData via TransformProps.ts', formData);
@@ -102,6 +106,10 @@ export default function transformProps(chartProps) {
     xAxisAngle,
     numberXAxis,
     xAxisHeight,
+    xAxisTickSize,
+    xTick,
+    areaYOrientation,
+    barYOrientation,
     areaFields,
     areaLabel,
     barLabel,
@@ -112,6 +120,6 @@ export default function transformProps(chartProps) {
     areaLabelFontSize,
     barLabelFontSize,
     customFieldNames,
-    customLinearColorScheme
+    colorScheme
   };
 }

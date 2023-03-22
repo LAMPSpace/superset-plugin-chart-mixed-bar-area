@@ -22,8 +22,9 @@ function _taggedTemplateLiteralLoose(strings, raw) { if (!raw) { raw = strings.s
  */
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
-import { getSequentialSchemeRegistry } from '@superset-ui/core';
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, ComposedChart, LabelList } from "recharts"; // The following Styles component is a <div> element, which has been styled using Emotion
+import { getCategoricalSchemeRegistry } from '@superset-ui/core';
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, ComposedChart, LabelList } from "recharts";
+import { showAreaYAxis, showBarYAxis } from './plugin/controlPanel'; // The following Styles component is a <div> element, which has been styled using Emotion
 // For docs, visit https://emotion.sh/docs/styled
 // Theming variables are provided for your use via a ThemeProvider
 // imported from @superset-ui/core. For variables available, please visit
@@ -76,7 +77,7 @@ var Styles = styled.div(_templateObject || (_templateObject = _taggedTemplateLit
  */
 
 export default function SupersetPluginChartMixedBarArea(props) {
-  var _getSequentialSchemeR;
+  var _getCategoricalScheme;
 
   // height and width are the height and width of the DOM element as it exists in the dashboard.
   // There is also a `data` prop, which is, of course, your DATA 🎉
@@ -101,11 +102,9 @@ export default function SupersetPluginChartMixedBarArea(props) {
   var customFieldNames = props.customFieldNames !== undefined ? props.customFieldNames.split(';').map(field => {
     return field.trim();
   }) : [];
-  var areaFields = props.areaFields !== undefined ? props.areaFields.split(';').map(field => {
-    return field.trim();
-  }) : [];
+  var areaFields = props.areaFields !== undefined ? props.areaFields : [];
   var barFields = numberFields.filter(key => !areaFields.includes(key));
-  var colors = (_getSequentialSchemeR = getSequentialSchemeRegistry().get(props.customLinearColorScheme)) == null ? void 0 : _getSequentialSchemeR.colors;
+  var colors = (_getCategoricalScheme = getCategoricalSchemeRegistry().get(props.colorScheme)) == null ? void 0 : _getCategoricalScheme.colors;
 
   var numberFormatter = num => {
     var lookup = [{
@@ -259,6 +258,8 @@ export default function SupersetPluginChartMixedBarArea(props) {
     angle: props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0,
     hide: !props.xAxis,
     scale: "auto",
+    tickLine: props.xTick !== undefined ? props.xTick : true,
+    tickSize: props.xAxisTickSize !== undefined ? parseInt(props.xAxisTickSize) : 6,
     padding: {
       left: 30,
       right: 30
@@ -271,26 +272,30 @@ export default function SupersetPluginChartMixedBarArea(props) {
       yAxisId: index,
       label: {
         value: props.yLabel,
-        angle: -90,
-        position: 'insideLeft'
+        angle: props.areaYOrientation !== undefined && props.areaYOrientation === 'right' ? 90 : -90,
+        position: props.areaYOrientation !== undefined && props.areaYOrientation === 'right' ? 'insideRight' : 'insideLeft'
       },
       dataKey: key,
       type: "number",
-      hide: !props.yAxis,
+      hide: props.yAxis !== undefined && [showBarYAxis, 'none'].includes(props.yAxis) ? true : false,
       ticks: ticks,
+      stroke: colors[index],
       angle: props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0,
+      orientation: props.areaYOrientation !== undefined ? props.areaYOrientation : 'left',
       tickFormatter: numberFormatter
     }) : /*#__PURE__*/React.createElement(YAxis, {
       yAxisId: index,
       label: {
         value: props.yLabel,
-        angle: -90,
-        position: 'insideLeft'
+        angle: props.barYOrientation !== undefined && props.barYOrientation === 'right' ? 90 : -90,
+        position: props.barYOrientation !== undefined && props.barYOrientation === 'right' ? 'insideRight' : 'insideLeft'
       },
       dataKey: key,
       type: "number",
-      hide: !props.yAxis,
+      hide: props.yAxis !== undefined && [showAreaYAxis, 'none'].includes(props.yAxis) ? true : false,
+      stroke: colors[index],
       angle: props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0,
+      orientation: props.barYOrientation !== undefined ? props.barYOrientation : 'left',
       tickFormatter: numberFormatter
     });
   }), /*#__PURE__*/React.createElement(Tooltip, null), props.legend !== undefined && props.legend && /*#__PURE__*/React.createElement(Legend, {

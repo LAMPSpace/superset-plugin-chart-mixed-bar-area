@@ -65,6 +65,10 @@ export default function transformProps(chartProps: ChartProps) {
     xAxisAngle,
     numberXAxis,
     xAxisHeight,
+    xAxisTickSize,
+    xTick,
+    areaYOrientation,
+    barYOrientation,
     areaFields,
     areaLabel,
     barLabel,
@@ -75,7 +79,7 @@ export default function transformProps(chartProps: ChartProps) {
     areaLabelFontSize,
     barLabelFontSize,
     customFieldNames,
-    customLinearColorScheme,
+    colorScheme
   } = formData;
   const data = queriesData[0].data as TimeseriesDataRecord[];
 
@@ -101,6 +105,10 @@ export default function transformProps(chartProps: ChartProps) {
     xAxisAngle,
     numberXAxis,
     xAxisHeight,
+    xAxisTickSize,
+    xTick,
+    areaYOrientation,
+    barYOrientation,
     areaFields,
     areaLabel,
     barLabel,
@@ -111,6 +119,6 @@ export default function transformProps(chartProps: ChartProps) {
     areaLabelFontSize,
     barLabelFontSize,
     customFieldNames,
-    customLinearColorScheme,
+    colorScheme,
   };
 }

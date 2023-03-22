@@ -18,10 +18,9 @@
  */
 import { t, validateNonEmpty } from '@superset-ui/core';
 import { ControlPanelConfig, sections, sharedControls } from '@superset-ui/chart-controls';
-import { getSequentialSchemeRegistry } from '@superset-ui/core';
-import { GenericDataType } from '@superset-ui/core';
 
-const sequentialSchemeRegistry = getSequentialSchemeRegistry();
+export const showBarYAxis = 'bar';
+export const showAreaYAxis = 'area';
 const config: ControlPanelConfig = {
   /**
    * The control panel is split into two tabs: "Query" and
@@ -213,10 +212,17 @@ const config: ControlPanelConfig = {
           {
             name: 'y_axis',
             config: {
-              type: 'CheckboxControl',
-              label: t('Y Axis'),
+              type: 'SelectControl',
+              label: t('Show Y Axis'),
               renderTrigger: true,
-              default: false,
+              default: 'all',
+              choices: [
+                // [value, label]
+                ['all', 'All'],
+                [showBarYAxis, 'Bar'],
+                [showAreaYAxis, 'Area'],
+                ['none', 'None']
+              ],
               description: t('A checkbox to make the y-axis'),
             },
           },
@@ -258,7 +264,7 @@ const config: ControlPanelConfig = {
             name: 'x_axis',
             config: {
               type: 'CheckboxControl',
-              label: t('X Axis'),
+              label: t('Show X Axis'),
               renderTrigger: true,
               default: false,
               description: t('A checkbox to make the x-axis'),
@@ -310,13 +316,39 @@ const config: ControlPanelConfig = {
         ],
         [
           {
+            name: 'x_axis_tick_size',
+            config: {
+              type: 'TextControl',
+              default: '6',
+              renderTrigger: true,
+              // ^ this makes it apply instantaneously, without triggering a "run query" button
+              label: t('Tick Size'),
+              description: t('The x-axis tick size of chart'),
+            },
+          },
+        ],
+        [
+          {
+            name: 'x_tick',
+            config: {
+              type: 'CheckboxControl',
+              default: true,
+              renderTrigger: true,
+              // ^ this makes it apply instantaneously, without triggering a "run query" button
+              label: t('Show X Tick'),
+              description: t('A checkbox to make the x-tick'),
+            },
+          },
+        ],
+        [
+          {
             name: 'x_axis_height',
             config: {
               type: 'TextControl',
               default: '30',
               renderTrigger: true,
               // ^ this makes it apply instantaneously, without triggering a "run query" button
-              label: t('X Axis height'),
+              label: t('X Axis Height'),
               description: t('The x-axis height of chart'),
             },
           },
@@ -327,35 +359,6 @@ const config: ControlPanelConfig = {
       label: t('Chart Custom Controls'),
       expanded: true,
       controlSetRows: [
-        // [
-        //   {
-        //     name: 'secondary_entity',
-        //     config: {
-        //       type: 'SelectControl',
-        //       label: t('Secondary Entity'),
-        //       renderTrigger: true,
-        //       multi: true,
-        //       description: t('The custom field names you want to show in your chart, each element should be splited by ;'),
-        //       mapStateToProps: (explore, _, chart) => {
-        //         const { colnames, coltypes } =
-        //           chart?.queriesResponse?.[0] ?? {};
-        //         const numericColumns =
-        //           Array.isArray(colnames) && Array.isArray(coltypes)
-        //             ? colnames
-        //               .filter(
-        //                 (colname: string, index: number) =>
-        //                   coltypes[index] === GenericDataType.NUMERIC,
-        //               )
-        //               .map(colname => ([colname, colname]))
-        //             : [];
-        //         console.log('Debug ', numericColumns);
-        //         return {
-        //           choices: numericColumns,
-        //         };
-        //       },
-        //     },
-        //   }
-        // ],
         [
           {
             name: 'custom_field_names',
@@ -374,7 +377,7 @@ const config: ControlPanelConfig = {
             name: 'legend',
             config: {
               type: 'CheckboxControl',
-              label: t('Legend'),
+              label: t('Show Legend'),
               renderTrigger: true,
               default: true,
               description: t('A checkbox to make the legend'),
@@ -398,23 +401,7 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [
-          {
-            name: 'custom_linear_color_scheme',
-            config: {
-              type: 'ColorSchemeControl',
-              label: t('Linear color scheme'),
-              choices: () =>
-                sequentialSchemeRegistry.values().map(value => [value.id, value.label]),
-              default: sequentialSchemeRegistry.getDefaultKey(),
-              clearable: false,
-              description: '',
-              renderTrigger: true,
-              schemes: () => sequentialSchemeRegistry.getMap(),
-              isLinear: true,
-            },
-          },
-        ],
+        ['color_scheme']
       ],
     },
     {
@@ -425,12 +412,34 @@ const config: ControlPanelConfig = {
           {
             name: 'area_fields',
             config: {
-              type: 'TextControl',
-              default: '',
-              renderTrigger: true,
-              // ^ this makes it apply instantaneously, without triggering a "run query" button
+              type: 'SelectControl',
               label: t('Area Fields'),
-              description: t('The fields that you want to show using area chart, each element should be splited by ;'),
+              renderTrigger: true,
+              multi: true,
+              description: t('The custom field names you want to show in your chart'),
+              mapStateToProps: chart => {
+                const metrics = chart.form_data.metrics || [];
+                return {
+                  choices: metrics.map((metric) => [metric.label, metric.label]),
+                };
+              },
+            },
+          }
+        ],
+        [
+          {
+            name: 'area_y_orientation',
+            config: {
+              type: 'SelectControl',
+              label: t('Y Axis Orientation'),
+              renderTrigger: true,
+              default: 'left',
+              choices: [
+                // [value, label]
+                ['left', 'Left'],
+                ['right', 'Right'],
+              ],
+              description: t('The area y-axis orientation of chart'),
             },
           },
         ],
@@ -439,7 +448,7 @@ const config: ControlPanelConfig = {
             name: 'area_label',
             config: {
               type: 'CheckboxControl',
-              label: t('Area Chart Label'),
+              label: t('Show Area Chart Label'),
               renderTrigger: true,
               default: false,
               description: t('A checkbox to make the area chart labels'),
@@ -506,10 +515,27 @@ const config: ControlPanelConfig = {
       controlSetRows: [
         [
           {
+            name: 'bar_y_orientation',
+            config: {
+              type: 'SelectControl',
+              label: t('Y Axis Orientation'),
+              renderTrigger: true,
+              default: 'left',
+              choices: [
+                // [value, label]
+                ['left', 'Left'],
+                ['right', 'Right'],
+              ],
+              description: t('The bar y-axis orientation of chart'),
+            },
+          },
+        ],
+        [
+          {
             name: 'bar_label',
             config: {
               type: 'CheckboxControl',
-              label: t('Bar Chart Label'),
+              label: t('Show Bar Chart Label'),
               renderTrigger: true,
               default: false,
               description: t('A checkbox to make the bar chart labels'),

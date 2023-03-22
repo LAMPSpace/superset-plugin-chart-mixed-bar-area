@@ -18,7 +18,7 @@
  */
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
-import { getSequentialSchemeRegistry } from '@superset-ui/core';
+import { getCategoricalSchemeRegistry } from '@superset-ui/core';
 import { SupersetPluginChartMixedBarAreaProps, SupersetPluginChartMixedBarAreaStylesProps } from './types';
 import {
   Bar,
@@ -31,6 +31,7 @@ import {
   ComposedChart,
   LabelList,
 } from "recharts";
+import { showAreaYAxis, showBarYAxis } from './plugin/controlPanel';
 
 // The following Styles component is a <div> element, which has been styled using Emotion
 // For docs, visit https://emotion.sh/docs/styled
@@ -91,13 +92,11 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     return field.trim();
   }) : [];
 
-  const areaFields = props.areaFields !== undefined ? props.areaFields.split(';').map(field => {
-    return field.trim();
-  }) : [];
+  const areaFields = props.areaFields !== undefined ? props.areaFields : [];
 
   const barFields = numberFields.filter(key => !areaFields.includes(key));
 
-  const colors: any = getSequentialSchemeRegistry().get(props.customLinearColorScheme)?.colors;
+  const colors: any = getCategoricalSchemeRegistry().get(props.colorScheme)?.colors;
 
   const numberFormatter = (num: any) => {
     const lookup = [
@@ -220,6 +219,8 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
           angle={props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0}
           hide={!props.xAxis}
           scale='auto'
+          tickLine={props.xTick !== undefined ? props.xTick : true}
+          tickSize={props.xAxisTickSize !== undefined ? parseInt(props.xAxisTickSize) : 6}
           padding={{ left: 30, right: 30 }}
           height={props.xAxisHeight !== undefined ? parseInt(props.xAxisHeight) : 30}
           interval={props.numberXAxis !== undefined ? props.numberXAxis : 'preserveEnd'}
@@ -229,22 +230,34 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
           return (areaFields.includes(key) && numberFields.includes(key)) ? (
             <YAxis
               yAxisId={index}
-              label={{ value: props.yLabel, angle: -90, position: 'insideLeft' }}
+              label={{
+                value: props.yLabel,
+                angle: props.areaYOrientation !== undefined && props.areaYOrientation === 'right' ? 90 : -90,
+                position: props.areaYOrientation !== undefined && props.areaYOrientation === 'right' ? 'insideRight' : 'insideLeft'
+              }}
               dataKey={key}
               type='number'
-              hide={!props.yAxis}
+              hide={props.yAxis !== undefined && [showBarYAxis, 'none'].includes(props.yAxis) ? true : false}
               ticks={ticks}
+              stroke={colors[index]}
               angle={props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0}
-              tickFormatter={numberFormatter}>
+              orientation={props.areaYOrientation !== undefined ? props.areaYOrientation : 'left'}
+              tickFormatter={numberFormatter} >
             </YAxis>) :
             (
               <YAxis
                 yAxisId={index}
-                label={{ value: props.yLabel, angle: -90, position: 'insideLeft' }}
+                label={{
+                  value: props.yLabel,
+                  angle: props.barYOrientation !== undefined && props.barYOrientation === 'right' ? 90 : -90,
+                  position: props.barYOrientation !== undefined && props.barYOrientation === 'right' ? 'insideRight' : 'insideLeft'
+                }}
                 dataKey={key}
                 type='number'
-                hide={!props.yAxis}
+                hide={props.yAxis !== undefined && [showAreaYAxis, 'none'].includes(props.yAxis) ? true : false}
+                stroke={colors[index]}
                 angle={props.yAxisAngle !== undefined ? parseInt(props.yAxisAngle) : 0}
+                orientation={props.barYOrientation !== undefined ? props.barYOrientation : 'left'}
                 tickFormatter={numberFormatter}>
               </YAxis>);
         })}
@@ -297,6 +310,6 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
           ) : (<></>);
         })}
       </ComposedChart>
-    </Styles>
+    </Styles >
   );
 }

@@ -39,7 +39,11 @@ interface SupersetPluginChartMixedBarAreaCustomizeProps {
   xAxisAngle: string;
   numberXAxis: any;
   xAxisHeight: string;
-  areaFields: string;
+  xAxisTickSize: string;
+  xTick: boolean;
+  areaYOrientation: string;
+  barYOrientation: string;
+  areaFields: any;
   areaLabel: boolean;
   barLabel: boolean;
   areaLabelPosition: string;
@@ -49,7 +53,7 @@ interface SupersetPluginChartMixedBarAreaCustomizeProps {
   areaLabelFontSize: string;
   barLabelFontSize: string;
   customFieldNames: string;
-  customLinearColorScheme: string;
+  colorScheme: string;
 }
 
 export type SupersetPluginChartMixedBarAreaQueryFormData = QueryFormData &
