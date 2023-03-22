@@ -1,6 +1,6 @@
 {
   "name": "superset-plugin-chart-mixed-bar-area",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Superset Plugin Chart Mixed Bar Area",
   "sideEffects": false,
   "main": "lib/index.js",
