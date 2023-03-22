@@ -46,6 +46,9 @@ describe('SupersetPluginChartMixedBarArea transformProps', () => {
     areaLabelAngle: 0,
     barLabelAngle: 0,
     customFieldNames: '',
+    xAxisHeight: 30,
+    numberXAxis: 0,
+    customLinearColorScheme: 'schemeCool',
   };
   const chartProps = new ChartProps({
     formData,
@@ -79,6 +82,11 @@ describe('SupersetPluginChartMixedBarArea transformProps', () => {
       barLabelPosition: top,
       areaLabelAngle: 0,
       barLabelAngle: 0,
+      areaLabelFontSize: 10,
+      barLabelFontSize: 10,
+      xAxisHeight: 30,
+      numberXAxis: 0,
+      customLinearColorScheme: 'schemeCool',
       customFieldNames: '',
       data: [{ name: 'Hulk', sum__num: 1 }],
     });

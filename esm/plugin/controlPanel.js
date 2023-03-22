@@ -20,6 +20,8 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
  */
 import { t, validateNonEmpty } from '@superset-ui/core';
 import { sections, sharedControls } from '@superset-ui/chart-controls';
+import { getSequentialSchemeRegistry } from '@superset-ui/core';
+var sequentialSchemeRegistry = getSequentialSchemeRegistry();
 var config = {
   /**
    * The control panel is split into two tabs: "Query" and
@@ -164,6 +166,15 @@ var config = {
     label: t('Y Axis Controls'),
     expanded: true,
     controlSetRows: [[{
+      name: 'y_axis',
+      config: {
+        type: 'CheckboxControl',
+        label: t('Y Axis'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the y-axis')
+      }
+    }], [{
       name: 'y_label',
       config: {
         type: 'TextControl',
@@ -183,20 +194,31 @@ var config = {
         label: t('Y Axis Angle'),
         description: t('The y-axis angle of chart')
       }
-    }], [{
-      name: 'y_axis',
-      config: {
-        type: 'CheckboxControl',
-        label: t('Y Axis'),
-        renderTrigger: true,
-        default: false,
-        description: t('A checkbox to make the y-axis')
-      }
     }]]
   }, {
     label: t('X Axis Controls'),
     expanded: true,
     controlSetRows: [[{
+      name: 'x_axis',
+      config: {
+        type: 'CheckboxControl',
+        label: t('X Axis'),
+        renderTrigger: true,
+        default: false,
+        description: t('A checkbox to make the x-axis')
+      }
+    }], [{
+      name: 'number_x_axis',
+      config: {
+        type: 'SelectControl',
+        label: t('Number Of X Ticks'),
+        default: 'preserveEnd',
+        choices: [// [value, label]
+        [0, 'All'], ['preserveEnd', 'Auto']],
+        renderTrigger: true,
+        description: t('The size of your header font')
+      }
+    }], [{
       name: 'x_label',
       config: {
         type: 'TextControl',
@@ -217,19 +239,49 @@ var config = {
         description: t('The x-axis angle of chart')
       }
     }], [{
-      name: 'x_axis',
+      name: 'x_axis_height',
       config: {
-        type: 'CheckboxControl',
-        label: t('X Axis'),
+        type: 'TextControl',
+        default: '30',
         renderTrigger: true,
-        default: false,
-        description: t('A checkbox to make the x-axis')
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('X Axis height'),
+        description: t('The x-axis height of chart')
       }
     }]]
   }, {
     label: t('Chart Custom Controls'),
     expanded: true,
-    controlSetRows: [[{
+    controlSetRows: [// [
+    //   {
+    //     name: 'secondary_entity',
+    //     config: {
+    //       type: 'SelectControl',
+    //       label: t('Secondary Entity'),
+    //       renderTrigger: true,
+    //       multi: true,
+    //       description: t('The custom field names you want to show in your chart, each element should be splited by ;'),
+    //       mapStateToProps: (explore, _, chart) => {
+    //         const { colnames, coltypes } =
+    //           chart?.queriesResponse?.[0] ?? {};
+    //         const numericColumns =
+    //           Array.isArray(colnames) && Array.isArray(coltypes)
+    //             ? colnames
+    //               .filter(
+    //                 (colname: string, index: number) =>
+    //                   coltypes[index] === GenericDataType.NUMERIC,
+    //               )
+    //               .map(colname => ([colname, colname]))
+    //             : [];
+    //         console.log('Debug ', numericColumns);
+    //         return {
+    //           choices: numericColumns,
+    //         };
+    //       },
+    //     },
+    //   }
+    // ],
+    [{
       name: 'custom_field_names',
       config: {
         type: 'TextControl',
@@ -258,6 +310,19 @@ var config = {
         ['top', 'Top'], ['bottom', 'Bottom']],
         renderTrigger: true,
         description: t('The position of legend')
+      }
+    }], [{
+      name: 'custom_linear_color_scheme',
+      config: {
+        type: 'ColorSchemeControl',
+        label: t('Linear color scheme'),
+        choices: () => sequentialSchemeRegistry.values().map(value => [value.id, value.label]),
+        default: sequentialSchemeRegistry.getDefaultKey(),
+        clearable: false,
+        description: '',
+        renderTrigger: true,
+        schemes: () => sequentialSchemeRegistry.getMap(),
+        isLinear: true
       }
     }]]
   }, {
@@ -303,6 +368,18 @@ var config = {
         label: t('Area Label Angle'),
         description: t('The angle of area chart labels')
       }
+    }], [{
+      name: 'area_label_font_size',
+      config: {
+        type: 'SelectControl',
+        default: '10',
+        choices: [// [value, label]
+        ['8', '8'], ['10', '10'], ['12', '12'], ['14', '14']],
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Area Label Font Size'),
+        description: t('The font size of area chart labels')
+      }
     }]]
   }, {
     label: t('Bar Chart Controls'),
@@ -336,6 +413,18 @@ var config = {
         // ^ this makes it apply instantaneously, without triggering a "run query" button
         label: t('Bar Label Angle'),
         description: t('The angle of bar chart labels')
+      }
+    }], [{
+      name: 'bar_label_font_size',
+      config: {
+        type: 'SelectControl',
+        default: '10',
+        choices: [// [value, label]
+        ['8', '8'], ['10', '10'], ['12', '12'], ['14', '14']],
+        renderTrigger: true,
+        // ^ this makes it apply instantaneously, without triggering a "run query" button
+        label: t('Bar Label Font Size'),
+        description: t('The font size of bar chart labels')
       }
     }]]
   }]

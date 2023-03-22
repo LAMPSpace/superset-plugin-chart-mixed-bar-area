@@ -22,6 +22,7 @@ function _taggedTemplateLiteralLoose(strings, raw) { if (!raw) { raw = strings.s
  */
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
+import { getSequentialSchemeRegistry } from '@superset-ui/core';
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, ComposedChart, LabelList } from "recharts"; // The following Styles component is a <div> element, which has been styled using Emotion
 // For docs, visit https://emotion.sh/docs/styled
 // Theming variables are provided for your use via a ThemeProvider
@@ -75,6 +76,8 @@ var Styles = styled.div(_templateObject || (_templateObject = _taggedTemplateLit
  */
 
 export default function SupersetPluginChartMixedBarArea(props) {
+  var _getSequentialSchemeR;
+
   // height and width are the height and width of the DOM element as it exists in the dashboard.
   // There is also a `data` prop, which is, of course, your DATA 🎉
   var {
@@ -102,7 +105,7 @@ export default function SupersetPluginChartMixedBarArea(props) {
     return field.trim();
   }) : [];
   var barFields = numberFields.filter(key => !areaFields.includes(key));
-  var colors = ['#2282c6', '#30b030', '#ff8b0f', '#8abcdc', '#405ba3', '#003366', '#336699', '#CC3300', '#FF9900', '#00CCFF', '#CC9966'];
+  var colors = (_getSequentialSchemeR = getSequentialSchemeRegistry().get(props.customLinearColorScheme)) == null ? void 0 : _getSequentialSchemeR.colors;
 
   var numberFormatter = num => {
     var lookup = [{
@@ -212,15 +215,17 @@ export default function SupersetPluginChartMixedBarArea(props) {
   var getFieldTicks = () => {
     var fieldRanges = [];
     areaFields.forEach(field => {
-      var range = getMaxMinValueByKey(field);
+      if (numberFields.includes(field)) {
+        var range = getMaxMinValueByKey(field);
 
-      if (!range.includes(0)) {
-        range.push(0);
+        if (!range.includes(0)) {
+          range.push(0);
+        }
+
+        fieldRanges.push(range.sort(function (a, b) {
+          return a - b;
+        }));
       }
-
-      fieldRanges.push(range.sort(function (a, b) {
-        return a - b;
-      }));
     });
     return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
   };
@@ -241,7 +246,8 @@ export default function SupersetPluginChartMixedBarArea(props) {
     height: height,
     data: data
   }, /*#__PURE__*/React.createElement(CartesianGrid, {
-    stroke: "#f5f5f5"
+    stroke: "#f5f5f5",
+    strokeDasharray: "3 3"
   }), /*#__PURE__*/React.createElement(XAxis, {
     label: {
       value: props.xLabel,
@@ -252,10 +258,16 @@ export default function SupersetPluginChartMixedBarArea(props) {
     type: "category",
     angle: props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0,
     hide: !props.xAxis,
-    scale: "band"
+    scale: "auto",
+    padding: {
+      left: 30,
+      right: 30
+    },
+    height: props.xAxisHeight !== undefined ? parseInt(props.xAxisHeight) : 30,
+    interval: props.numberXAxis !== undefined ? props.numberXAxis : 'preserveEnd'
   }), numberFields.map((key, index) => {
-    var ticks = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
-    return areaFields.includes(key) ? /*#__PURE__*/React.createElement(YAxis, {
+    var ticks = areaFields.includes(key) && numberFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
+    return areaFields.includes(key) && numberFields.includes(key) ? /*#__PURE__*/React.createElement(YAxis, {
       yAxisId: index,
       label: {
         value: props.yLabel,
@@ -285,12 +297,13 @@ export default function SupersetPluginChartMixedBarArea(props) {
     verticalAlign: props.legendPosition !== undefined ? props.legendPosition : 'top'
   }), barFields.length > 0 && barFields.map(key => {
     var index = numberFields.indexOf(key);
+    var fieldColor = colors[index];
     var fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
     return /*#__PURE__*/React.createElement(Bar, {
       yAxisId: index,
       dataKey: key,
       name: fieldName,
-      fill: colors[index]
+      fill: fieldColor
     }, props.barLabel !== undefined && props.barLabel && /*#__PURE__*/React.createElement(LabelList, {
       dataKey: key,
       position: props.barLabelPosition !== undefined ? props.barLabelPosition : 'right',
@@ -298,23 +311,24 @@ export default function SupersetPluginChartMixedBarArea(props) {
       formatter: numberFormatter,
       style: {
         color: 'black',
-        fontSize: 10,
+        fontSize: props.barLabelFontSize !== undefined ? parseInt(props.barLabelFontSize) : 10,
         textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white'
       }
     }));
   }), areaFields.length > 0 && areaFields.map(key => {
     var index = numberFields.indexOf(key);
+    var fieldColor = colors[index];
     var fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
-    return /*#__PURE__*/React.createElement(Area, {
+    return numberFields.includes(key) ? /*#__PURE__*/React.createElement(Area, {
       type: "monotone",
       yAxisId: index,
       dataKey: key,
       name: fieldName,
-      stroke: colors[index],
-      fill: colors[index],
+      stroke: fieldColor,
+      fill: fieldColor,
       dot: {
         fill: 'white',
-        stroke: colors[index],
+        stroke: fieldColor,
         strokeWidth: 2
       }
     }, props.areaLabel !== undefined && props.areaLabel && /*#__PURE__*/React.createElement(LabelList, {
@@ -324,9 +338,9 @@ export default function SupersetPluginChartMixedBarArea(props) {
       formatter: numberFormatter,
       style: {
         color: 'black',
-        fontSize: 10,
+        fontSize: props.areaLabelFontSize !== undefined ? parseInt(props.areaLabelFontSize) : 10,
         textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white'
       }
-    }));
+    })) : /*#__PURE__*/React.createElement(React.Fragment, null);
   })));
 }

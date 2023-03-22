@@ -18,6 +18,7 @@
  */
 import React, { useEffect, createRef } from 'react';
 import { styled } from '@superset-ui/core';
+import { getSequentialSchemeRegistry } from '@superset-ui/core';
 import { SupersetPluginChartMixedBarAreaProps, SupersetPluginChartMixedBarAreaStylesProps } from './types';
 import {
   Bar,
@@ -96,19 +97,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
 
   const barFields = numberFields.filter(key => !areaFields.includes(key));
 
-  const colors = [
-    '#2282c6',
-    '#30b030',
-    '#ff8b0f',
-    '#8abcdc',
-    '#405ba3',
-    '#003366',
-    '#336699',
-    '#CC3300',
-    '#FF9900',
-    '#00CCFF',
-    '#CC9966'
-  ];
+  const colors: any = getSequentialSchemeRegistry().get(props.customLinearColorScheme)?.colors;
 
   const numberFormatter = (num: any) => {
     const lookup = [
@@ -196,11 +185,13 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
   const getFieldTicks = () => {
     let fieldRanges: any = [];
     areaFields.forEach(field => {
-      let range = getMaxMinValueByKey(field);
-      if (!range.includes(0)) {
-        range.push(0);
+      if (numberFields.includes(field)) {
+        let range = getMaxMinValueByKey(field);
+        if (!range.includes(0)) {
+          range.push(0);
+        }
+        fieldRanges.push(range.sort(function (a, b) { return a - b }));
       }
-      fieldRanges.push(range.sort(function (a, b) { return a - b }));
     });
     return generateTicks(fieldRanges, getNewZeroIndex(fieldRanges));
   }
@@ -221,18 +212,21 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
         height={height}
         data={data}
       >
-        <CartesianGrid stroke="#f5f5f5" />
+        <CartesianGrid stroke="#f5f5f5" strokeDasharray="3 3" />
         <XAxis
           label={{ value: props.xLabel, angle: 0, position: 'insideBottom' }}
           dataKey={itemLabel}
           type='category'
           angle={props.xAxisAngle !== undefined ? parseInt(props.xAxisAngle) : 0}
           hide={!props.xAxis}
-          scale='band'
+          scale='auto'
+          padding={{ left: 30, right: 30 }}
+          height={props.xAxisHeight !== undefined ? parseInt(props.xAxisHeight) : 30}
+          interval={props.numberXAxis !== undefined ? props.numberXAxis : 'preserveEnd'}
         ></XAxis>
         {numberFields.map((key, index) => {
-          let ticks: any = areaFields.includes(key) ? areaTicks[areaFields.indexOf(key)] : [];
-          return areaFields.includes(key) ? (
+          let ticks: any = (areaFields.includes(key) && numberFields.includes(key)) ? areaTicks[areaFields.indexOf(key)] : [];
+          return (areaFields.includes(key) && numberFields.includes(key)) ? (
             <YAxis
               yAxisId={index}
               label={{ value: props.yLabel, angle: -90, position: 'insideLeft' }}
@@ -258,13 +252,14 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
         {(props.legend !== undefined && props.legend) && <Legend verticalAlign={props.legendPosition !== undefined ? props.legendPosition : 'top'} />}
         {barFields.length > 0 && barFields.map(key => {
           let index = numberFields.indexOf(key);
+          let fieldColor = colors[index];
           let fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
           return (
             <Bar
               yAxisId={index}
               dataKey={key}
               name={fieldName}
-              fill={colors[index]}
+              fill={fieldColor}
             >
               {(props.barLabel !== undefined && props.barLabel) &&
                 <LabelList
@@ -272,22 +267,23 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
                   position={props.barLabelPosition !== undefined ? props.barLabelPosition : 'right'}
                   angle={props.barLabelAngle !== undefined ? parseInt(props.barLabelAngle) : 0}
                   formatter={numberFormatter}
-                  style={{ color: 'black', fontSize: 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
+                  style={{ color: 'black', fontSize: props.barLabelFontSize !== undefined ? parseInt(props.barLabelFontSize) : 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
                 ></LabelList>}
             </Bar>
           );
         })}
         {areaFields.length > 0 && areaFields.map(key => {
           let index = numberFields.indexOf(key);
+          let fieldColor = colors[index];
           let fieldName = customFieldNames.length === 0 ? '' : customFieldNames[index];
-          return (
+          return numberFields.includes(key) ? (
             <Area type="monotone"
               yAxisId={index}
               dataKey={key}
               name={fieldName}
-              stroke={colors[index]}
-              fill={colors[index]}
-              dot={{ fill: 'white', stroke: colors[index], strokeWidth: 2 }}
+              stroke={fieldColor}
+              fill={fieldColor}
+              dot={{ fill: 'white', stroke: fieldColor, strokeWidth: 2 }}
             >
               {(props.areaLabel !== undefined && props.areaLabel) &&
                 <LabelList
@@ -295,10 +291,10 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
                   position={props.areaLabelPosition !== undefined ? props.areaLabelPosition : 'right'}
                   angle={props.areaLabelAngle !== undefined ? parseInt(props.areaLabelAngle) : 0}
                   formatter={numberFormatter}
-                  style={{ color: 'black', fontSize: 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
+                  style={{ color: 'black', fontSize: props.areaLabelFontSize !== undefined ? parseInt(props.areaLabelFontSize) : 10, textShadow: '-1px 0px 0px white, 1px 0px 0px white, 0px -1px 0px white, 0px 1px 0px white' }}
                 ></LabelList>}
             </Area>
-          )
+          ) : (<></>);
         })}
       </ComposedChart>
     </Styles>
