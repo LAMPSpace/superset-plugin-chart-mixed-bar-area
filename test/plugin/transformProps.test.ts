@@ -45,10 +45,12 @@ describe('SupersetPluginChartMixedBarArea transformProps', () => {
     barLabelPosition: top,
     areaLabelAngle: 0,
     barLabelAngle: 0,
-    customFieldNames: '',
+    areaLabelFontSize: 10,
+    barLabelFontSize: 10,
     xAxisHeight: 30,
     numberXAxis: 0,
     customLinearColorScheme: 'schemeCool',
+    customFieldNames: '',
   };
   const chartProps = new ChartProps({
     formData,
