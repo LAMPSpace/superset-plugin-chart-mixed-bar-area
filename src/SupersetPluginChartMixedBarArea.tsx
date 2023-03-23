@@ -111,7 +111,7 @@ export default function SupersetPluginChartMixedBarArea(props: SupersetPluginCha
     lookup.forEach((item, index) => {
       if (index !== 0) {
         let preLookup = lookup[index - 1];
-        if (item.value >= Math.abs(num) && Math.abs(num) > preLookup.value) {
+        if (item.value > Math.abs(result) && Math.abs(result) >= preLookup.value) {
           result = (num / preLookup.value).toFixed(2) + preLookup.symbol;
         }
       }

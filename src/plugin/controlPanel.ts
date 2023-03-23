@@ -420,7 +420,7 @@ const config: ControlPanelConfig = {
               mapStateToProps: chart => {
                 const metrics = chart.form_data.metrics || [];
                 return {
-                  choices: metrics.map((metric) => [metric, metric]),
+                  choices: metrics.map((metric) => [metric.label, metric.label]),
                 };
               },
             },
